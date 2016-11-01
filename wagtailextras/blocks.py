@@ -1,8 +1,9 @@
 from django import forms
+from django.db import models
 from django.db.models.fields import BLANK_CHOICE_DASH
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
-from wagtail.wagtailcore.blocks import Block, ChoiceBlock as WagtailChoiceBlock
+from wagtail.wagtailcore.blocks import Block, ChoiceBlock as WagtailChoiceBlock, ChooserBlock
 
 
 class EmptyBlock(Block):
@@ -34,10 +35,12 @@ class EmptyBlock(Block):
             placeholder = self.name.title()
         return placeholder
 
+
 class ChoiceBlock(WagtailChoiceBlock):
     """
     TODO: This exists until https://github.com/torchbox/wagtail/pull/2903 is pulled
     """
+
     def __init__(self, choices=None, required=True, help_text=None, include_blank=True, **kwargs):
         if choices is None:
             # no choices specified, so pick up the choice list defined at the class level
@@ -75,3 +78,20 @@ class ChoiceBlock(WagtailChoiceBlock):
 
         self.field = forms.ChoiceField(choices=choices, required=required, help_text=help_text)
         super(WagtailChoiceBlock, self).__init__(**kwargs)
+
+
+class ModelChooserBlock(ChooserBlock):
+    target_model = models.Model
+
+    def clean(self, value):
+        return self.field.clean(self.value_for_form(value))
+
+    def value_for_form(self, value):
+        if value:
+            return value.id
+        return None
+
+    def value_from_form(self, value):
+        if value:
+            return self.target_model.objects.get(pk=value)
+        return None
