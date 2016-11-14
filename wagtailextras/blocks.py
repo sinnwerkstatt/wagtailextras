@@ -80,6 +80,11 @@ class ChoiceBlock(WagtailChoiceBlock):
         super(WagtailChoiceBlock, self).__init__(**kwargs)
 
 
+class MultipleChoiceBlock(ChoiceBlock):
+    def __init__(self, choices=None, required=True, *args, **kwargs):
+        super(MultipleChoiceBlock, self).__init__(*args, **kwargs)
+        self.field = forms.MultipleChoiceField(choices=choices,required=required)
+
 class ModelChooserBlock(ChooserBlock):
     target_model = models.Model
 
